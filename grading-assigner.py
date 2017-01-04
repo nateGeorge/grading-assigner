@@ -9,6 +9,7 @@ import time
 import pytz
 from dateutil import parser
 from datetime import datetime, timedelta
+import send_messages as sm
 
 utc = pytz.UTC
 
@@ -26,7 +27,7 @@ ASSIGNED_COUNT_URL = '{}/me/submissions/assigned_count.json'.format(BASE_URL)
 ASSIGNED_URL = '{}/me/submissions/assigned.json'.format(BASE_URL)
 
 REVIEW_URL = 'https://review.udacity.com/#!/submissions/{sid}'
-REQUESTS_PER_SECOND = 1 # Please leave this alone.
+REQUESTS_PER_SECOND = 1 # Max frequency allowed by Udacity
 
 logging.basicConfig(format='|%(asctime)s| %(message)s')
 logger = logging.getLogger(__name__)
@@ -55,6 +56,7 @@ def alert_for_assignment(current_request, headers):
         logger.info("View it here: " + REVIEW_URL.format(sid=current_request['submission_id']))
         logger.info("=================================================")
         logger.info("Continuing to poll...")
+        sm.send_messages(link=REVIEW_URL.format(sid=current_request['submission_id']))
         return None
     return current_request
 
@@ -156,7 +158,7 @@ if __name__ == "__main__":
     )
     cmd_parser.add_argument('--auth-token', '-T', dest='token',
 	metavar='TOKEN', type=str,
-	action='store', default=os.environ.get('UDACITY_AUTH_TOKEN'),
+	action='store', default=os.environ.get('udacity_api_key'),
 	help="""
 	    Your Udacity auth token. To obtain, login to review.udacity.com, open the Javascript console, and copy the output of `JSON.parse(localStorage.currentUser).token`.  This can also be stored in the environment variable UDACITY_AUTH_TOKEN.
 	"""
@@ -172,4 +174,3 @@ if __name__ == "__main__":
         logger.setLevel(logging.DEBUG)
 
     request_reviews(args.token)
-
